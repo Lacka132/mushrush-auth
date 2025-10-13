@@ -1,22 +1,25 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { usePrivy } from "@privy-io/react-auth";
 
 // -----------------------------------------------------------------------------
-// MushRush — Early Access Landing (React + Tailwind + NextAuth Twitter Login)
+// MushRush — Early Access Landing (React + Tailwind + Privy Twitter Login)
 // -----------------------------------------------------------------------------
 
 export default function EarlyAccessPage() {
-const sessionHook = typeof window !== "undefined" ? useSession() : null;
-const session = sessionHook?.data;
-const isSignedIn = !!session;
-  const wallet = session?.user?.name || null;
+  const { ready, authenticated, user, login, logout } = usePrivy();
+
+  const isSignedIn = ready && authenticated;
+  const wallet = user?.wallet?.address || user?.twitter?.username || "0x0000";
 
   // Referral state
   const [referralInput, setReferralInput] = useState("");
   const [myReferral, setMyReferral] = useState("RF-XXXX");
-  const maskedWallet = useMemo(() => (wallet ? maskWallet(wallet) : "0x…hidden"), [wallet]);
+  const maskedWallet = useMemo(
+    () => (wallet ? maskWallet(wallet) : "0x…hidden"),
+    [wallet]
+  );
 
   // Tasks state
   const [joinedDiscord, setJoinedDiscord] = useState(false);
@@ -29,6 +32,7 @@ const isSignedIn = !!session;
   function handleCopyRef() {
     const refText = `${myReferral}`;
     navigator.clipboard.writeText(refText);
+    alert("Referral copied!");
   }
 
   function applyReferral() {
@@ -52,6 +56,14 @@ const isSignedIn = !!session;
     alert("Download coming soon (export card as PNG)");
   }
 
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0a12] text-white text-lg">
+        Loading Privy...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#0b0a12] text-white">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -72,13 +84,13 @@ const isSignedIn = !!session;
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                if (isSignedIn) signOut();
-                else signIn("twitter");
+                if (isSignedIn) logout();
+                else login();
               }}
               className="rounded-xl bg-white px-4 py-2 text-black hover:bg-white/90"
             >
               {isSignedIn
-                ? `Sign out (${session?.user?.name || "user"})`
+                ? `Sign out (${user?.twitter?.username || "user"})`
                 : "Sign in with X"}
             </button>
             <button
