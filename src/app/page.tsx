@@ -1,103 +1,164 @@
-import Image from "next/image";
+"use client";
+import React, { useMemo, useState } from "react";
 
-export default function Home() {
+// MushRush — Early Access (Next.js + Tailwind)
+export default function Page() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [referralInput, setReferralInput] = useState("");
+  const [myReferral, setMyReferral] = useState("RF-XXXX");
+  const maskedWallet = useMemo(() => (wallet ? maskWallet(wallet) : "0x…hidden"), [wallet]);
+
+  const [joinedDiscord, setJoinedDiscord] = useState(false);
+  const [sharedCard, setSharedCard] = useState(false);
+  const [followedX, setFollowedX] = useState(false);
+  const completed = [joinedDiscord, sharedCard, followedX].filter(Boolean).length;
+
+  const canRegister = isSignedIn && referralInput.trim().length > 0 && completed === 3;
+
+  function handleSignInWithX() {
+    setIsSignedIn(true);
+    setWallet("0x9aC3...eF19");
+  }
+
+  function handleCopyRef() {
+    navigator.clipboard.writeText(myReferral);
+    alert("Referral copied!");
+  }
+
+  function applyReferral() {
+    alert(`Applied referral: ${referralInput}`);
+  }
+
+  function register() {
+    alert("Registered for Early Access!");
+  }
+
+  function shareOnX() {
+    const text = encodeURIComponent(
+      `I'm joining MushRush Early Access! Use my referral ${myReferral} to climb the queue.`
+    );
+    const url = encodeURIComponent("https://your-domain.com/early-access");
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen w-full bg-[#0b0a12] text-white">
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-[#7b3cff] grid place-items-center font-bold">M</div>
+            <div>
+              <div className="text-lg font-semibold">MushRush — Early Access</div>
+              <div className="text-sm text-white/60">Marketing landing • Share to climb the queue</div>
+            </div>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSignInWithX}
+              className="rounded-xl bg-white px-4 py-2 text-black hover:bg-white/90"
+            >
+              {isSignedIn ? "Signed in" : "Sign in with X"}
+            </button>
+            <button
+              onClick={handleCopyRef}
+              className="rounded-xl bg-[#7b3cff] px-4 py-2 hover:bg-[#6c34e0]"
+            >
+              Copy ref
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#c59cff]">GET EARLY ACCESS</h1>
+            <p className="mt-3 max-w-prose text-white/70">
+              Complete a few simple tasks and share your referral to move up the early access queue.
+            </p>
+
+            <div className="mt-6">
+              <label className="mb-2 block text-sm text-white/70">
+                Referral code/address is required to register
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-[#7b3cff]"
+                  placeholder="Enter referral code or wallet address (required)"
+                  value={referralInput}
+                  onChange={(e) => setReferralInput(e.target.value)}
+                />
+                <button
+                  onClick={applyReferral}
+                  className="rounded-xl bg-white/10 px-4 py-2 hover:bg-white/15"
+                >
+                  Apply
+                </button>
+              </div>
+              <div className="mt-2 text-sm text-white/60">
+                Your referral: <span className="font-semibold text-[#c7a6ff]">{myReferral}</span> {maskedWallet}
+              </div>
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <TaskRow label="Join our Discord" done={joinedDiscord} onAction={() => setJoinedDiscord(true)} actionLabel="Join" link="https://discord.gg/your-server" />
+              <TaskRow label="Share your referral card" done={sharedCard} onAction={() => { setSharedCard(true); shareOnX(); }} actionLabel="Share" />
+              <TaskRow label="Follow us on X" done={followedX} onAction={() => { setFollowedX(true); window.open('https://x.com/your-handle', '_blank'); }} actionLabel="Follow" />
+            </div>
+
+            <div className="mt-8 flex items-center justify-between">
+              <div className="text-sm text-white/60">{completed} / 3 tasks completed</div>
+              <button
+                disabled={!canRegister}
+                onClick={register}
+                className={`rounded-xl px-5 py-3 text-sm font-semibold transition ${
+                  canRegister ? "bg-[#7b3cff] hover:bg-[#6c34e0]" : "bg-white/10 text-white/40 cursor-not-allowed"
+                }`}
+              >
+                Register for Early Access
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
+}
+
+function TaskRow({ label, done, onAction, actionLabel, link }: { label: string; done: boolean; onAction: () => void; actionLabel: string; link?: string; }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center gap-3">
+        <span
+          className={`grid h-5 w-5 place-items-center rounded-full border ${
+            done
+              ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+              : "border-white/20 bg-transparent text-transparent"
+          }`}
+        >
+          ✓
+        </span>
+        <div className="font-medium">{label}</div>
+      </div>
+      <button
+        onClick={() => {
+          if (link) window.open(link, "_blank");
+          onAction();
+        }}
+        className={`rounded-xl px-4 py-2 text-sm ${
+          done
+            ? "bg-white/10 text-white/40 cursor-not-allowed"
+            : "bg-[#7b3cff] hover:bg-[#6c34e0]"
+        }`}
+        disabled={done}
+      >
+        {actionLabel}
+      </button>
+    </div>
+  );
+}
+
+function maskWallet(addr: string) {
+  if (addr.length <= 10) return addr;
+  return addr.slice(0, 4) + "…" + addr.slice(-4);
 }
