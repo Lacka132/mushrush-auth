@@ -6,7 +6,7 @@ const handler = NextAuth({
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "1.0", // fontos: új Twitter API v2
+      version: "2.0", // fontos: új Twitter API v2
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
