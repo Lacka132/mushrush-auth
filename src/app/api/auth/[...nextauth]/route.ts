@@ -6,10 +6,19 @@ const handler = NextAuth({
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
+      version: "2.0", // fontos: új Twitter API v2
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    async session({ session, token }) {
+      if (session?.user) {
+        // csak ha van user objektum
+        (session.user as any).id = token.sub;
+      }
+      return session;
+    },
+  },
 });
 
 export { handler as GET, handler as POST };
