@@ -8,8 +8,9 @@ import { signIn, signOut, useSession } from "next-auth/react";
 // -----------------------------------------------------------------------------
 
 export default function EarlyAccessPage() {
-  const { data: session } = useSession();
-  const isSignedIn = !!session;
+const sessionHook = typeof window !== "undefined" ? useSession() : null;
+const session = sessionHook?.data;
+const isSignedIn = !!session;
   const wallet = session?.user?.name || null;
 
   // Referral state
