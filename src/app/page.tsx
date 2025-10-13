@@ -1,25 +1,25 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import React, { useMemo, useState, useEffect } from "react";
+import { usePrivy, useLogin } from "@privy-io/react-auth";
 
 // -----------------------------------------------------------------------------
-// MushRush — Early Access Landing (React + Tailwind + Privy Twitter Login)
+// MushRush — Early Access Landing (Privy + Twitter)
 // -----------------------------------------------------------------------------
 
 export default function EarlyAccessPage() {
-  const { ready, authenticated, user, login, logout } = usePrivy();
+  const { user, logout } = usePrivy();
+  const { login } = useLogin();
+const { getAccessToken } = usePrivy();
 
-  const isSignedIn = ready && authenticated;
-  const wallet = user?.wallet?.address || user?.twitter?.username || "0x0000";
+  const isSignedIn = !!user;
+  const wallet = user?.twitter?.username || user?.wallet?.address || "User";
+  const profileImage = user?.twitter?.profilePictureUrl || "";
 
   // Referral state
   const [referralInput, setReferralInput] = useState("");
   const [myReferral, setMyReferral] = useState("RF-XXXX");
-  const maskedWallet = useMemo(
-    () => (wallet ? maskWallet(wallet) : "0x…hidden"),
-    [wallet]
-  );
+  const maskedWallet = useMemo(() => (wallet ? maskWallet(wallet) : "0x…hidden"), [wallet]);
 
   // Tasks state
   const [joinedDiscord, setJoinedDiscord] = useState(false);
@@ -29,10 +29,10 @@ export default function EarlyAccessPage() {
 
   const canRegister = isSignedIn && referralInput.trim().length > 0 && completed === 3;
 
+  // Copy referral
   function handleCopyRef() {
     const refText = `${myReferral}`;
     navigator.clipboard.writeText(refText);
-    alert("Referral copied!");
   }
 
   function applyReferral() {
@@ -48,7 +48,7 @@ export default function EarlyAccessPage() {
       `I'm joining MushRush Early Access! Use my referral ${myReferral} to climb the queue.`
     );
     const url = encodeURIComponent("https://mushrushsignup.netlify.app");
-    const via = "mushrush";
+    const via = "MushRush_xyz";
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}&via=${via}`, "_blank");
   }
 
@@ -56,13 +56,41 @@ export default function EarlyAccessPage() {
     alert("Download coming soon (export card as PNG)");
   }
 
-  if (!ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b0a12] text-white text-lg">
-        Loading Privy...
-      </div>
-    );
+  // Auto check if following @MushRush_xyz
+  useEffect(() => {
+  async function checkFollow() {
+    try {
+      const accessToken = await getAccessToken();
+      const username = user?.twitter?.username;
+
+      if (!accessToken || !username) return;
+
+      // 1️⃣ Először lekérjük a user Twitter ID-ját a username alapján
+      const userRes = await fetch(`https://api.twitter.com/2/users/by/username/${username}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const userData = await userRes.json();
+      const userId = userData?.data?.id;
+      if (!userId) return;
+
+      // 2️⃣ Ellenőrizzük, követi-e a MushRush_xyz-t
+      const targetId = "1834172633509062656"; // MushRush_xyz user ID
+      const followRes = await fetch(
+        `https://api.twitter.com/2/users/${userId}/following/${targetId}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+
+      const followData = await followRes.json();
+      if (followData?.data?.following) setFollowedX(true);
+    } catch (err) {
+      console.warn("Follow check failed", err);
+    }
   }
+
+  checkFollow();
+}, [user]);
+
+
 
   return (
     <div className="min-h-screen w-full bg-[#0b0a12] text-white">
@@ -70,14 +98,10 @@ export default function EarlyAccessPage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#7b3cff] grid place-items-center font-bold">
-              M
-            </div>
+            <div className="h-10 w-10 rounded-xl bg-[#7b3cff] grid place-items-center font-bold">M</div>
             <div>
               <div className="text-lg font-semibold">MushRush — Early Access</div>
-              <div className="text-sm text-white/60">
-                Marketing landing • Share to climb the queue
-              </div>
+              <div className="text-sm text-white/60">Marketing landing • Share to climb the queue</div>
             </div>
           </div>
 
@@ -89,9 +113,7 @@ export default function EarlyAccessPage() {
               }}
               className="rounded-xl bg-white px-4 py-2 text-black hover:bg-white/90"
             >
-              {isSignedIn
-                ? `Sign out (${user?.twitter?.username || "user"})`
-                : "Sign in with X"}
+              {isSignedIn ? `Sign out (${wallet})` : "Sign in with X"}
             </button>
             <button
               onClick={handleCopyRef}
@@ -161,7 +183,7 @@ export default function EarlyAccessPage() {
                 done={followedX}
                 onAction={() => {
                   setFollowedX(true);
-                  window.open("https://x.com/your-handle", "_blank");
+                  window.open("https://x.com/MushRush_xyz", "_blank");
                 }}
                 actionLabel="Follow"
               />
@@ -193,7 +215,7 @@ export default function EarlyAccessPage() {
             </div>
           </div>
 
-          {/* Right Column — Player Card */}
+          {/* Right Column — Profile Card */}
           <div>
             <div className="sticky top-8 rounded-3xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-end gap-2">
@@ -203,7 +225,7 @@ export default function EarlyAccessPage() {
 
               <div className="mt-2 rounded-2xl border border-white/10 bg-gradient-to-br from-[#7b3cff] via-[#8e54ff] to-[#5a24d6] p-3">
                 <div className="rounded-xl bg-[#9e75ff]/30 p-2">
-                  <CardArt />
+                  <CardArt image={profileImage} />
                 </div>
               </div>
 
@@ -234,7 +256,7 @@ export default function EarlyAccessPage() {
 }
 
 // -----------------------------------------------------------------------------
-// Subcomponents
+// Components
 // -----------------------------------------------------------------------------
 
 function TaskRow({
@@ -321,13 +343,20 @@ function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function CardArt() {
+function CardArt({ image }: { image?: string }) {
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-xl">
-      <div className="absolute inset-2 rounded-xl border-4 border-white/80"></div>
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="h-2/3 w-2/3 rounded-3xl bg-gradient-to-br from-[#6f2eff] to-[#ad88ff] blur-sm" />
-      </div>
+      {image ? (
+        <img
+          src={image.replace("_normal", "_400x400")}
+          alt="Profile"
+          className="absolute inset-0 h-full w-full object-cover rounded-xl"
+        />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-[#6f2eff] to-[#ad88ff]">
+          <div className="h-2/3 w-2/3 rounded-3xl bg-[#8b5cf6]/30 blur-sm" />
+        </div>
+      )}
     </div>
   );
 }
